@@ -1,7 +1,7 @@
 import numpy as np
 from moviepy.editor import AudioFileClip, VideoClip, CompositeVideoClip, ImageClip
 from PIL import Image, ImageDraw, ImageFont
-import textwrap, os
+import os
 
 W, H = 1080, 1920
 
@@ -11,28 +11,30 @@ def wave(t):
     img = np.stack([z, z, z], axis=2).astype("uint8")
     return img
 
+def _measure(draw, text, font):
+    # Pillow safety: use textlength if available, else textbbox width
+    if hasattr(draw, "textlength"):
+        return draw.textlength(text, font=font)
+    return draw.textbbox((0,0), text, font=font)[2]
+
 def make_text_image(text, max_width=W-160, font_size=52, line_height=1.25):
-    # try a nice font; fallback to default
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
     try:
         font = ImageFont.truetype(font_path, font_size)
-    except:
+    except Exception:
         font = ImageFont.load_default()
 
-    # wrap text roughly to fit box width
     dummy = Image.new("RGB", (10, 10)); draw = ImageDraw.Draw(dummy)
-    words = text.split()
-    lines, cur = [], []
+    words, lines, cur = text.split(), [], []
     for w in words:
-        test = " ".join(cur+[w])
-        w_px = draw.textlength(test, font=font)
+        test = " ".join(cur + [w])
+        w_px = _measure(draw, test, font)
         if w_px <= max_width or not cur:
             cur.append(w)
         else:
             lines.append(" ".join(cur)); cur = [w]
     if cur: lines.append(" ".join(cur))
 
-    # render onto transparent image
     lh = int(font_size * line_height)
     h_needed = 80 + lh*len(lines)
     img = Image.new("RGBA", (W, h_needed), (0,0,0,0))
