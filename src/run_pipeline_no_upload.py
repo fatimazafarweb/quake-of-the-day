@@ -12,8 +12,13 @@ def main():
     script=subprocess.check_output(["python","-m","src.make_script"],input=json.dumps(info).encode()).decode()
     (OUT/"script.txt").write_text(script,encoding="utf-8")
 
-    voice=OUT/"voice.wav"
-    subprocess.check_call(["python","-m","src.tts_piper",str(voice)],input=script.encode())
+    voice = OUT / "voice.wav"
+subprocess.run(
+    ["python", "-m", "src.tts_piper", str(voice)],
+    input=script.encode("utf-8"),
+    check=True
+)
+
 
     video=OUT/"video.mp4"
     subprocess.check_call(["python","-m","src.make_video",str(OUT/"script.txt"),str(voice),str(video)])
