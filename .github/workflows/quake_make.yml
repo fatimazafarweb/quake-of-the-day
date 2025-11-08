@@ -1,11 +1,15 @@
 name: Quake of the Day (Make.com Upload)
 
 on:
+  workflow_dispatch:           # run manually from the Actions tab
+  push:                        # run whenever you commit to main
+    branches: [ main ]
+  schedule:                    # run automatically 3×/day (UTC)
+    - cron: "7 6,12,18 * * *"
+
+# must be top-level (not under `on`)
 permissions:
   contents: write
-  schedule:
-    - cron: "7 6,12,18 * * *"   # 3x/day UTC
-  workflow_dispatch:
 
 jobs:
   build-and-send:
@@ -18,12 +22,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
-
-              - name: Install ImageMagick
-        run: sudo apt-get install -y imagemagick
-
+      - name: Install system deps (ffmpeg + jq + ImageMagick)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg jq imagemagick
 
       - name: Install python deps
         run: pip install -r requirements.txt
