@@ -9,8 +9,7 @@ def wave(t):
     x = np.linspace(0, W, W)
     X, Y = np.meshgrid(x, y)
     z = (np.sin((X/120.0) + (Y/180.0) + t*2.0) + np.sin((X/75.0) - (Y/140.0) + t)) * 127.0 + 128.0
-    img = np.stack([z, z, z], axis=2).astype("uint8")
-    return img
+    return np.stack([z, z, z], axis=2).astype("uint8")
 
 def _measure(draw, text, font):
     # Pillow safety: use textlength if available, else textbbox width
@@ -25,10 +24,11 @@ def make_text_image(text, max_width=W-160, font_size=52, line_height=1.25):
     except Exception:
         font = ImageFont.load_default()
 
-    # Wrap text to fit width
+    # wrap text to fit width
     dummy = Image.new("RGB", (10, 10))
     draw = ImageDraw.Draw(dummy)
-    words, lines, cur = text.split(), [], []
+    words = text.split()
+    lines, cur = [], []
     for w in words:
         test = " ".join(cur + [w])
         w_px = _measure(draw, test, font)
@@ -40,7 +40,7 @@ def make_text_image(text, max_width=W-160, font_size=52, line_height=1.25):
     if cur:
         lines.append(" ".join(cur))
 
-    # Render onto transparent image
+    # render onto transparent image
     lh = int(font_size * line_height)
     h_needed = 80 + lh * len(lines)
     img = Image.new("RGBA", (W, h_needed), (0, 0, 0, 0))
@@ -54,11 +54,11 @@ def make_text_image(text, max_width=W-160, font_size=52, line_height=1.25):
 
 def build(script_path, audio_path, out_path):
     aud = AudioFileClip(audio_path)
-    # keep video slightly shorter than audio to avoid EOF issues
+    # keep video safely inside audio length to avoid EOF errors
     adur = float(aud.duration) if aud.duration else 10.0
     vdur = max(1.0, adur - 0.25)  # 250 ms safety margin
 
-    bg = VideoClip(lambda t: wave(t), duration=vdur).set_fps(30)
+    bg = VideoClip(lambda t: wave(t), duration=vdur).set_fps(24)
 
     with open(script_path, "r", encoding="utf-8") as f:
         txt = f.read()
@@ -77,17 +77,16 @@ def build(script_path, audio_path, out_path):
         .set_audio(aud.set_duration(vdur)) \
         .set_duration(vdur)
 
-        v.write_videofile(
+    v.write_videofile(
         out_path,
-        fps=24,                    # lower FPS → smaller file
+        fps=24,
         codec="libx264",
         audio_codec="aac",
-        audio_bitrate="64k",       # mono/low-bitrate audio
-        bitrate="900k",            # target ~0.9 Mbps video bitrate
+        audio_bitrate="64k",
+        bitrate="900k",
         preset="veryfast",
-        ffmpeg_params=["-movflags", "faststart", "-pix_fmt", "yuv420p"]
+        ffmpeg_params=["-movflags", "faststart", "-pix_fmt", "yuv420p"],
     )
-
 
 if __name__ == "__main__":
     import sys
