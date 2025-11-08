@@ -1,6 +1,8 @@
 name: Quake of the Day (Make.com Upload)
 
 on:
+permissions:
+  contents: write
   schedule:
     - cron: "7 6,12,18 * * *"   # 3x/day UTC
   workflow_dispatch:
