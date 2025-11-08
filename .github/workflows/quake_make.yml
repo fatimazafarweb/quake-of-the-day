@@ -22,10 +22,11 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system deps (ffmpeg + jq + ImageMagick + espeak-ng)
+      - name: Install system deps (ffmpeg + jq + ImageMagick + espeak-ng + fonts)
   run: |
     sudo apt-get update
-    sudo apt-get install -y ffmpeg jq imagemagick espeak-ng
+    sudo apt-get install -y ffmpeg jq imagemagick espeak-ng fonts-dejavu-core
+
 
 
       - name: Install python deps
