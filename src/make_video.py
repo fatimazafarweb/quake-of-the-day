@@ -77,14 +77,17 @@ def build(script_path, audio_path, out_path):
         .set_audio(aud.set_duration(vdur)) \
         .set_duration(vdur)
 
-    v.write_videofile(
+        v.write_videofile(
         out_path,
-        fps=30,
+        fps=24,                    # lower FPS → smaller file
         codec="libx264",
         audio_codec="aac",
-        preset="medium",
-        bitrate="3000k",
+        audio_bitrate="64k",       # mono/low-bitrate audio
+        bitrate="900k",            # target ~0.9 Mbps video bitrate
+        preset="veryfast",
+        ffmpeg_params=["-movflags", "faststart", "-pix_fmt", "yuv420p"]
     )
+
 
 if __name__ == "__main__":
     import sys
