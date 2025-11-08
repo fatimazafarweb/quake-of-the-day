@@ -3,7 +3,7 @@ import os, sys, subprocess, shutil
 MODEL = os.environ.get("PIPER_MODEL", "models/en_US-amy-medium.onnx")
 
 def synth(text, out_path):
-    # Try Piper CLI
+    # 1) Try Piper CLI
     piper_bin = shutil.which("piper")
     if piper_bin:
         cmd = [piper_bin, "--model", MODEL, "--output_file", out_path, "--sentence_silence", "0.25"]
@@ -12,7 +12,7 @@ def synth(text, out_path):
         if p.returncode != 0:
             raise RuntimeError(err.decode("utf-8", "ignore"))
         return
-    # Fallback: espeak-ng
+    # 2) Fallback: espeak-ng / espeak
     es = shutil.which("espeak-ng") or shutil.which("espeak")
     if es:
         cmd = [es, "-w", out_path, "-s", "175", "-v", "en-us"]
