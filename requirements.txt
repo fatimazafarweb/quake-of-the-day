@@ -1,0 +1,6 @@
+moviepy
+pydub
+requests
+Pillow
+numpy
+piper-tts
