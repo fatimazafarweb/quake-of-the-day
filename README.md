@@ -15,3 +15,4 @@ This builds a 9:16 Short from USGS public-domain data and **sends it to Make.com
 
 Attribution to include in your video description:
 `Data: USGS Earthquake Hazards Program (Public Domain). Preliminary; subject to change.`
+
