@@ -9,8 +9,13 @@ def main():
     top = fetch_quake.pick_top(feats) if feats else None
 
     if not top:
-        info = {"place":"No significant events","mag":3.5,"time_utc":"",
-                "lat":0.0,"lon":0.0,"depth_km":10,"url":"https://earthquake.usgs.gov/"}
+        info = {
+            "place": "No significant events",
+            "mag": 3.5,
+            "time_utc": "",
+            "lat": 0.0, "lon": 0.0, "depth_km": 10,
+            "url": "https://earthquake.usgs.gov/"
+        }
     else:
         info = fetch_quake.simplify(top)
 
@@ -31,7 +36,7 @@ def main():
 
     video = OUT / "video.mp4"
     subprocess.run(
-        [sys.executable, "-m", "src.make_video", str(OUT/"script.txt"), str(voice), str(video)],
+        [sys.executable, "-m", "src.make_video", str(OUT / "script.txt"), str(voice), str(video)],
         check=True
     )
 
