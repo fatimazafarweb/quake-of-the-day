@@ -1,0 +1,59 @@
+name: Quake of the Day (Make.com Upload)
+
+on:
+  schedule:
+    - cron: "7 6,12,18 * * *"   # 3x/day UTC
+  workflow_dispatch:
+
+jobs:
+  build-and-send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg jq
+
+      - name: Install python deps
+        run: pip install -r requirements.txt
+
+      - name: Download Piper model
+        run: |
+          mkdir -p models && cd models
+          curl -L -o en_US-amy-medium.onnx https://github.com/rhasspy/piper/releases/download/v1.2.0/en_US-amy-medium.onnx
+          curl -L -o en_US-amy-medium.onnx.json https://github.com/rhasspy/piper/releases/download/v1.2.0/en_US-amy-medium.onnx.json
+
+      - name: Build video (no upload)
+        run: python -m src.run_pipeline_no_upload
+
+      - name: Create release & upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: auto-${{ github.run_id }}
+          files: work/video.mp4
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Get asset URL
+        id: geturl
+        run: |
+          url=$(gh api repos/${{ github.repository }}/releases/tags/auto-${{ github.run_id }} | jq -r '.assets[0].browser_download_url')
+          echo "ASSET_URL=$url" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Notify Make webhook
+        env:
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+        run: |
+          jq -n --arg u "$ASSET_URL" \
+                --arg t "$(cat work/title.txt)" \
+                --arg d "$(cat work/description.txt)" \
+                --arg g "$(cat work/tags.txt)" \
+                '{download_url:$u,title:$t,description:$d,tags:$g}' \
+          | curl -sS -X POST -H "Content-Type: application/json" -d @- "$MAKE_WEBHOOK_URL"
